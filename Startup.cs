@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace EnvVarRepro_Aspnet
@@ -30,27 +29,22 @@ namespace EnvVarRepro_Aspnet
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
+            app.Run(async (context) =>
             {
-                endpoints.MapGet("/", async context =>
-                {
-                    var loggingOptions = context.RequestServices.GetRequiredService<IOptions<LoggingOptions>>();
-                    var metricsOptions = context.RequestServices.GetRequiredService<IOptions<MetricsOptions>>();
+                var loggingOptions = context.RequestServices.GetRequiredService<IOptions<LoggingOptions>>();
+                var metricsOptions = context.RequestServices.GetRequiredService<IOptions<MetricsOptions>>();
 
-                    context.Response.ContentType = "text/plain";
-                    await context.Response.WriteAsync($"Logging Hostname: {loggingOptions.Value.HostName}\r\n");
-                    await context.Response.WriteAsync($"Metrics Hostname: {metricsOptions.Value.HostName}\r\n");
-                    await context.Response.WriteAsync("Hello World!");
-                });
+                context.Response.ContentType = "text/plain";
+                await context.Response.WriteAsync($"Logging Hostname: {loggingOptions.Value.HostName}\r\n");
+                await context.Response.WriteAsync($"Metrics Hostname: {metricsOptions.Value.HostName}\r\n");
+                await context.Response.WriteAsync("Hello World!");
             });
         }
     }
